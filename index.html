@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<!-- ====================================================================
+     SIM-RUANG FH UNESA - index.html
+     "KERANGKA/STRUKTUR" - Elemen halaman saja (div, form, table).
+     Tampilan ada di style.css, logic/perilaku ada di app.js.
+     Ubah file ini kalau mau TAMBAH/HAPUS MENU atau ELEMEN baru.
+     ==================================================================== -->
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Informasi Manajemen Ruang (SIM-RUANG) FH UNESA</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<header class="masthead">
+    <div class="masthead-inner">
+        <div class="masthead-brand">
+            <span class="brand-seal">FH</span>
+            <div class="brand-text">
+                <span class="brand-title">SIM-RUANG</span>
+                <span class="brand-subtitle">Fakultas Hukum &middot; Universitas Negeri Surabaya</span>
+            </div>
+        </div>
+    </div>
+</header>
+
+<div class="container">
+    <p class="eyebrow">Sistem Layanan Internal</p>
+    <h1>Sistem Informasi Manajemen Ruang<span class="h1-sub">Pengajuan, Persetujuan, dan Penjadwalan Ruang Perkuliahan</span></h1>
+
+    <!-- SECTION 1: AUTENTIKASI (LOGIN & REGISTRASI) -->
+    <div id="section-auth" class="card">
+        <div class="auth-tabs">
+            <button id="btn-tab-login" class="active" onclick="switchAuthTab('login')" type="button">Login Sistem</button>
+            <button id="btn-tab-register" onclick="switchAuthTab('register')" type="button">Daftar Akun Baru</button>
+        </div>
+
+        <!-- FORM LOGIN -->
+        <div id="form-login-container">
+            <p class="eyebrow">Masuk ke Sistem</p>
+            <h2>Login Pengguna / Admin</h2>
+            <div id="login-error" class="error-banner hidden"></div>
+            <form onsubmit="event.preventDefault(); prosesLogin();">
+                <div class="form-group">
+                    <label>Username / Email / NIM / NIP</label>
+                    <input type="text" id="login-username" placeholder="Masukkan ID Login Anda" required autocomplete="username">
+                </div>
+                <div class="form-group">
+                    <label>Password</label>
+                    <input type="password" id="login-password" placeholder="Masukkan password" required autocomplete="current-password">
+                </div>
+                <button type="submit" id="btn-login-submit">Login ke Sistem</button>
+            </form>
+        </div>
+
+        <!-- FORM REGISTRASI -->
+        <div id="form-register-container" class="hidden">
+            <p class="eyebrow">Pengguna Baru</p>
+            <h2>Pendaftaran Akun Pengguna Baru</h2>
+            <div id="register-error" class="error-banner hidden"></div>
+            <form onsubmit="event.preventDefault(); prosesRegistrasi();">
+                <div class="form-group">
+                    <label>Nama Lengkap</label>
+                    <input type="text" id="reg-nama" placeholder="Contoh: Ahmad Subagyo" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Asal / Prodi</label>
+                        <input type="text" id="reg-prodi" placeholder="Contoh: S1 Ilmu Hukum" required>
+                    </div>
+                    <div class="form-group">
+                        <label>NIM / NIP / NIK</label>
+                        <input type="text" id="reg-nim" placeholder="Nomor Induk" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>No. WhatsApp Aktif</label>
+                        <input type="tel" id="reg-wa" placeholder="08xxxxxxxxxx" pattern="[0-9+ ]{8,15}" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Email UNESA / Umum</label>
+                        <input type="email" id="reg-email" placeholder="email@unesa.ac.id" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Nama Pengguna (Username)</label>
+                        <input type="text" id="reg-username" placeholder="Buat username unik" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Password</label>
+                        <input type="password" id="reg-password" placeholder="Buat password (min. 6 karakter)" minlength="6" required>
+                    </div>
+                </div>
+                <button type="submit" class="btn-success" id="btn-register-submit">Daftarkan Akun Saya</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- SECTION 2: DASHBOARD UTAMA -->
+    <div id="section-dashboard" class="hidden">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+            <div>Selamat datang, <strong id="user-display"></strong> (<span id="role-display"></span>)</div>
+            <button onclick="logout()" class="btn-danger btn-sm" style="padding: 8px 15px; width: auto;" type="button">Logout</button>
+        </div>
+
+        <!-- NAVIGASI TAB DASHBOARD -->
+        <div class="dash-tabs" id="dash-tabs">
+            <button type="button" class="dash-tab-btn active" data-tab="ajukan" onclick="switchDashTab('ajukan')">Ajukan Peminjaman</button>
+            <button type="button" class="dash-tab-btn hidden" id="dash-tab-btn-vip" data-tab="vip" onclick="switchDashTab('vip')">Booking VIP</button>
+            <button type="button" class="dash-tab-btn" data-tab="ruangan" onclick="switchDashTab('ruangan')">Data Ruangan</button>
+            <button type="button" class="dash-tab-btn" data-tab="riwayat" onclick="switchDashTab('riwayat')">Riwayat Peminjaman</button>
+            <button type="button" class="dash-tab-btn hidden" id="dash-tab-btn-laporan" data-tab="laporan" onclick="switchDashTab('laporan')">Laporan</button>
+        </div>
+
+        <!-- TAB: AJUKAN PEMINJAMAN -->
+        <div class="dash-tab-panel" id="dash-tab-ajukan">
+
+        <!-- FORM PINJAM REGULER (USER & ADMIN) -->
+        <div id="section-form-pinjam" class="card">
+            <p class="eyebrow">Ajukan Peminjaman</p>
+            <h3>Form Pengajuan Peminjaman Ruangan</h3>
+            <div id="pinjam-error" class="error-banner hidden"></div>
+            <form onsubmit="event.preventDefault(); ajukanPinjaman();">
+                <div class="form-group">
+                    <label>Pilih Ruangan</label>
+                    <select id="pinjam-ruang" required></select>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tanggal Peminjaman</label>
+                        <input type="date" id="pinjam-tanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Mulai</label>
+                        <input type="time" id="pinjam-jam-mulai" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Selesai</label>
+                        <input type="time" id="pinjam-jam-selesai" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Keperluan / Agenda Kegiatan</label>
+                    <input type="text" id="pinjam-keperluan" placeholder="Contoh: Kuliah S1 / Semhas / Rapat UKM" required>
+                </div>
+                <button type="submit" id="btn-pinjam-submit">Kirim Pengajuan Peminjaman</button>
+            </form>
+        </div>
+
+        </div>
+        <!-- /TAB: AJUKAN PEMINJAMAN -->
+
+        <!-- TAB: BOOKING VIP (KHUSUS ADMIN) -->
+        <div class="dash-tab-panel hidden" id="dash-tab-vip">
+
+        <!-- FORM BOOKING KILAT PIMPINAN (KHUSUS ADMIN) -->
+        <div id="section-admin-vip" class="card card-vip hidden">
+            <p class="eyebrow eyebrow-vip">Prioritas Pimpinan</p>
+            <h3 class="vip-title">Booking Kilat Pimpinan &amp; Agenda Dekanat</h3>
+            <p style="font-size: 12px; margin-top: -10px; color: #666; text-align: center;">Instruksi Pimpinan - Langsung Terkunci & Otomatis Disetujui</p>
+            <div id="vip-error" class="error-banner hidden"></div>
+            <form onsubmit="event.preventDefault(); ajukanBookingVip();">
+                <div class="form-group">
+                    <label>Pilih Ruangan</label>
+                    <select id="vip-ruang" required></select>
+                </div>
+                <div class="form-group">
+                    <label>Instruksi Pimpinan / Pemohon VIP</label>
+                    <input type="text" id="vip-pemohon" placeholder="Contoh: Dekan / Wakil Dekan I / Agenda Dekanat" required>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Tanggal Peminjaman</label>
+                        <input type="date" id="vip-tanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Mulai</label>
+                        <input type="time" id="vip-jam-mulai" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Jam Selesai</label>
+                        <input type="time" id="vip-jam-selesai" required>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Keperluan Agenda</label>
+                    <input type="text" id="vip-keperluan" placeholder="Contoh: Rapat Koordinasi Senat Fakultas" required>
+                </div>
+                <button type="submit" class="btn-vip" id="btn-vip-submit">Eksekusi & Kunci Ruangan Sekarang</button>
+            </form>
+        </div>
+
+        </div>
+        <!-- /TAB: BOOKING VIP -->
+
+        <!-- TAB: DATA RUANGAN -->
+        <div class="dash-tab-panel hidden" id="dash-tab-ruangan">
+
+        <div class="tab-panel-toolbar">
+            <p class="eyebrow" style="margin:0;">Referensi</p>
+            <button type="button" id="btn-toggle-kelola-ruang" class="hidden btn-sm btn-toolbar" onclick="toggleKelolaRuangPanel()">+ Tambah / Kelola Ruangan</button>
+        </div>
+        <h3>Daftar Fasilitas Ruang Perkuliahan FH UNESA</h3>
+
+        <!-- FORM KELOLA RUANGAN (KHUSUS ADMIN: TAMBAH / EDIT) -->
+        <div id="section-admin-kelola-ruang" class="card hidden">
+            <p class="eyebrow">Khusus Admin</p>
+            <h3>Kelola Data Ruangan</h3>
+            <div id="ruang-error" class="error-banner hidden"></div>
+            <form onsubmit="event.preventDefault(); simpanRuang();">
+                <input type="hidden" id="ruang-row-index">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Lantai</label>
+                        <input type="text" id="ruang-lantai" placeholder="Contoh: 2" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kode Ruang</label>
+                        <input type="text" id="ruang-code" placeholder="Contoh: R.201" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Kapasitas Kursi</label>
+                        <input type="text" id="ruang-kursi" placeholder="Contoh: 40" required>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>TV Smart</label>
+                        <select id="ruang-tv">
+                            <option value="Ada">Ada</option>
+                            <option value="Tidak Ada">Tidak Ada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>AC</label>
+                        <select id="ruang-ac">
+                            <option value="Ada">Ada</option>
+                            <option value="Tidak Ada">Tidak Ada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Stop Kontak</label>
+                        <select id="ruang-stopkontak">
+                            <option value="Ada">Ada</option>
+                            <option value="Tidak Ada">Tidak Ada</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Papan Tulis</label>
+                        <select id="ruang-papantulis">
+                            <option value="Ada">Ada</option>
+                            <option value="Tidak Ada">Tidak Ada</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Waktu Layanan</label>
+                        <input type="text" id="ruang-waktu" placeholder="Contoh: 07:00 - 21:00" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Program</label>
+                        <input type="text" id="ruang-program" placeholder="Contoh: S1 Ilmu Hukum" required>
+                    </div>
+                </div>
+                <div style="display:flex; gap:10px;">
+                    <button type="submit" class="btn-success" id="btn-ruang-submit">Simpan Data Ruangan</button>
+                    <button type="button" id="btn-ruang-batal" class="hidden" style="background:#6c757d;" onclick="batalEditRuang()">Batal Edit</button>
+                </div>
+            </form>
+        </div>
+
+        <!-- TABEL RUANG -->
+        <div class="table-search">
+            <input type="text" id="cari-ruangan" placeholder="Cari kode ruang, lantai, atau program studi..." oninput="filterTabelRuangan()">
+        </div>
+        <div id="loading-ruangan" class="loading">Memuat data ruangan dari Google Sheets...</div>
+        <div id="error-ruangan" class="error-banner hidden"></div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Lantai</th>
+                        <th>Kode Ruang</th>
+                        <th>Kursi</th>
+                        <th>TV Smart</th>
+                        <th>AC</th>
+                        <th>Stop Kontak</th>
+                        <th>Papan Tulis</th>
+                        <th>Waktu Layanan</th>
+                        <th>Program</th>
+                        <th id="th-aksi-ruangan" class="hidden">Aksi Admin</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-ruangan"></tbody>
+            </table>
+        </div>
+
+        </div>
+        <!-- /TAB: DATA RUANGAN -->
+
+        <!-- TAB: RIWAYAT PEMINJAMAN -->
+        <div class="dash-tab-panel hidden" id="dash-tab-riwayat">
+
+        <!-- TABEL STATUS RIWAYAT & PERSETUJUAN PINJAMAN -->
+        <p class="eyebrow">Riwayat</p>
+        <h3>Daftar Status &amp; Persetujuan Peminjaman</h3>
+        <div class="table-search">
+            <input type="text" id="cari-pinjaman" placeholder="Cari nama, kode ruang, NIM/NIP, keperluan, atau status..." oninput="filterTabelPinjaman()">
+        </div>
+        <div id="loading-pinjaman" class="loading">Memuat data peminjaman dari Google Sheets...</div>
+        <div id="error-pinjaman" class="error-banner hidden"></div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Waktu Input</th>
+                        <th>Kode Ruang</th>
+                        <th>Nama Pemohon</th>
+                        <th>NIM / NIP</th>
+                        <th>Keperluan</th>
+                        <th>Tanggal & Jam</th>
+                        <th>Status</th>
+                        <th id="th-aksi-pinjaman" class="hidden">Aksi Admin & Relokasi</th>
+                    </tr>
+                </thead>
+                <tbody id="tabel-pinjaman"></tbody>
+            </table>
+        </div>
+
+        </div>
+        <!-- /TAB: RIWAYAT PEMINJAMAN -->
+
+        <!-- TAB: LAPORAN (KHUSUS ADMIN) -->
+        <div class="dash-tab-panel hidden" id="dash-tab-laporan">
+
+        <div id="section-laporan" class="card">
+            <p class="eyebrow">Khusus Admin</p>
+            <h3>Buat Laporan Peminjaman</h3>
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Dari Tanggal</label>
+                    <input type="date" id="laporan-tanggal-mulai">
+                </div>
+                <div class="form-group">
+                    <label>Sampai Tanggal</label>
+                    <input type="date" id="laporan-tanggal-akhir">
+                </div>
+                <div class="form-group">
+                    <label>Ruangan (opsional)</label>
+                    <select id="laporan-ruang">
+                        <option value="">-- Semua Ruangan --</option>
+                    </select>
+                </div>
+            </div>
+            <button type="button" id="btn-buat-laporan" onclick="generateLaporan()">Tampilkan Laporan</button>
+            <p style="font-size:12px; color:var(--ink-600); text-align:center; margin-top:8px;">Kosongkan tanggal untuk menyertakan seluruh data yang tercatat.</p>
+        </div>
+
+        <div id="laporan-hasil" class="hidden">
+            <div class="card" id="laporan-ringkasan-card">
+                <p class="eyebrow">Ringkasan</p>
+                <h3>Statistik Persetujuan</h3>
+                <div class="laporan-stat-grid" id="laporan-stat-grid"></div>
+            </div>
+
+            <div class="card">
+                <p class="eyebrow">Pemakaian Ruangan</p>
+                <h3>Rekap Jumlah Peminjaman per Ruangan</h3>
+                <p id="laporan-ruang-ekstrem" style="text-align:center; font-size:13px; color:var(--ink-600);"></p>
+                <div class="table-scroll" style="max-height:320px;">
+                    <table>
+                        <thead>
+                            <tr><th>Kode Ruang</th><th>Lantai</th><th>Jumlah Peminjaman</th></tr>
+                        </thead>
+                        <tbody id="laporan-tabel-rekap-ruang"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <p class="eyebrow">Rincian</p>
+                <h3>Daftar Lengkap Peminjaman pada Periode Ini</h3>
+                <div class="table-scroll">
+                    <table>
+                        <thead>
+                            <tr><th>Tanggal & Jam</th><th>Kode Ruang</th><th>Pemohon</th><th>NIM/NIP</th><th>Keperluan</th><th>Status</th></tr>
+                        </thead>
+                        <tbody id="laporan-tabel-detail"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <button type="button" id="btn-unduh-laporan" class="btn-success" onclick="unduhLaporanPDF()">📄 Unduh sebagai PDF</button>
+        </div>
+
+        </div>
+        <!-- /TAB: LAPORAN -->
+
+        <!-- FOOTER CONTACT -->
+        <div class="contact-info">
+            <strong>Petugas Pengelola / Admin:</strong> Syahri (syahrisyahri@unesa.ac.id) | <strong>WA:</strong> 081331382680
+        </div>
+    </div>
+</div>
+
+<!-- WIDGET ASISTEN CUSTOMER SERVICE (AI) -->
+<button id="cs-toggle-btn" onclick="toggleChatCS()" type="button" title="Tanya Asisten CS">💬</button>
+<div id="cs-panel" class="hidden">
+    <div id="cs-panel-header">
+        <div>
+            Asisten CS SIM-RUANG
+            <small>Bantuan, rekomendasi ruangan & draf pesan</small>
+        </div>
+        <button id="cs-minimize-btn" onclick="minimizeChatCS()" type="button" title="Perkecil">–</button>
+        <button id="cs-close-btn" onclick="closeChatCS()" type="button" title="Tutup">✕</button>
+    </div>
+    <div id="cs-messages"></div>
+    <form id="cs-input-row" onsubmit="event.preventDefault(); kirimPesanCS();">
+        <input type="text" id="cs-input" placeholder="Tulis pertanyaan Anda..." autocomplete="off">
+        <button type="submit" id="cs-send-btn">Kirim</button>
+    </form>
+    <div id="cs-disclaimer">Jawaban dari AI, untuk hal resmi/mendesak tetap hubungi admin.</div>
+</div>
+
+<!-- MODAL RELOKASI (DROPDOWN + ALASAN PEMBERITAHUAN WA) -->
+<div id="modal-relokasi" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.5); z-index:9999; justify-content:center; align-items:center;">
+    <div style="background:white; padding:25px; border-radius:10px; width:90%; max-width:450px; box-shadow:0 5px 15px rgba(0,0,0,0.3);">
+        <h3 style="margin-top:0;">Pindahkan / Relokasi Ruangan</h3>
+        <p style="font-size:12.5px; color:#555;">Pilih ruangan baru dan berikan permohonan maaf/alasan pemindahan untuk dikirimkan via WA ke pemohon.</p>
+
+        <div class="form-group" style="margin-bottom:12px;">
+            <label>Pilih Ruangan Baru:</label>
+            <select id="select-relokasi-ruang"></select>
+        </div>
+
+        <div class="form-group" style="margin-bottom:15px;">
+            <label>Alasan / Catatan Pemindahan:</label>
+            <textarea id="alasan-relokasi" rows="3" placeholder="Contoh: Mohon maaf, ruangan semula akan dipergunakan untuk Kegiatan Dekanat/Rapat Senat..."></textarea>
+        </div>
+
+        <input type="hidden" id="relokasi-row-index">
+
+        <div style="display:flex; gap:10px; justify-content:flex-end;">
+            <button onclick="tutupModalRelokasi()" style="background:#6c757d; width:auto; padding:8px 15px;" type="button">Batal</button>
+            <button onclick="eksekusiRelokasi()" class="btn-warning" style="width:auto; padding:8px 15px;" type="button">Simpan & Kirim Konfirmasi WA</button>
+        </div>
+    </div>
+</div>
+
+<!-- Library untuk membuat PDF laporan (dipakai fitur Laporan admin) -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
+<script src="app.js"></script>
+
+</body>
+</html>
