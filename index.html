@@ -311,7 +311,7 @@
 
         <!-- TABEL STATUS RIWAYAT & PERSETUJUAN PINJAMAN -->
         <p class="eyebrow">Riwayat</p>
-        <h3>Daftar Status &amp; Persetujuan Peminjaman</h3>
+        <h3 id="judul-riwayat">Daftar Status &amp; Persetujuan Peminjaman</h3>
         <div class="table-search">
             <input type="text" id="cari-pinjaman" placeholder="Cari nama, kode ruang, NIM/NIP, keperluan, atau status..." oninput="filterTabelPinjaman()">
         </div>
@@ -456,9 +456,9 @@
 </div>
 
 <!-- Library untuk membuat PDF laporan (dipakai fitur Laporan admin) -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
-<script src="app.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js" defer></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js" defer></script>
+<script src="app.js" defer></script>
 
 </body>
 </html>

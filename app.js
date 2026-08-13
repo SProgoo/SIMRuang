@@ -11,7 +11,7 @@
        KONFIGURASI
        ================================================================ */
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxI5np8Yc6L67PZlcM-Twfg-KW9I1Rq8OUWTpDCIRluOFoQofm0e5GbZcIeh7_dHLWM/exec";
-    const JSONP_TIMEOUT_MS = 15000;
+    const JSONP_TIMEOUT_MS = 20000;
 
     let currentUser = null;
     let dataRuanganGlobal = [];
@@ -37,6 +37,29 @@
         const el = document.getElementById(elId);
         if (!el) return;
         el.textContent = message;
+        el.classList.remove("hidden");
+    }
+
+    // Sama seperti showError, tapi menambahkan tombol "Coba Lagi" kecil di
+    // sampingnya yang memanggil ulang fungsi retryFn. Dipakai untuk
+    // pemuatan data (tabel ruangan/pinjaman) yang kadang gagal karena
+    // koneksi/server sedang lambat -- supaya pengguna tidak perlu reload
+    // seluruh halaman.
+    function showErrorWithRetry(elId, message, retryFn) {
+        const el = document.getElementById(elId);
+        if (!el) return;
+        el.innerHTML = "";
+        const span = document.createElement("span");
+        span.textContent = message + " ";
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.textContent = "Coba Lagi";
+        btn.className = "btn-sm";
+        btn.style.marginTop = "0";
+        btn.style.marginLeft = "6px";
+        btn.onclick = retryFn;
+        el.appendChild(span);
+        el.appendChild(btn);
         el.classList.remove("hidden");
     }
 
@@ -232,6 +255,9 @@
         document.getElementById("th-aksi-ruangan").classList.toggle("hidden", !isAdmin);
         document.getElementById("dash-tab-btn-vip").classList.toggle("hidden", !isAdmin);
         document.getElementById("dash-tab-btn-laporan").classList.toggle("hidden", !isAdmin);
+        document.getElementById("judul-riwayat").textContent = isAdmin
+            ? "Daftar Status & Persetujuan Peminjaman"
+            : "Riwayat Pengajuan Peminjaman Saya";
         document.getElementById("btn-toggle-kelola-ruang").classList.toggle("hidden", !isAdmin);
         // section-admin-kelola-ruang tetap tersembunyi secara default (baik admin
         // maupun bukan) -- admin membukanya sendiri lewat tombol "+ Tambah/Kelola
@@ -240,7 +266,10 @@
 
         switchDashTab('ajukan');
         loadDataRuangan();
-        loadDataPinjaman();
+        // Beri jeda kecil sebelum request kedua, supaya tidak bertabrakan
+        // dengan request pertama di server (penyebab kegagalan acak saat
+        // login: dua permintaan datang persis bersamaan).
+        setTimeout(loadDataPinjaman, 400);
     }
 
     /* ================================================================
@@ -279,7 +308,7 @@
         clearError('error-ruangan');
         executeJSONP(`${SCRIPT_URL}?action=getRooms`, cb_getRooms, function (msg) {
             document.getElementById("loading-ruangan").classList.add("hidden");
-            showError('error-ruangan', msg);
+            showErrorWithRetry('error-ruangan', msg, loadDataRuangan);
         });
     }
 
@@ -473,9 +502,18 @@
     function loadDataPinjaman() {
         document.getElementById("loading-pinjaman").classList.remove("hidden");
         clearError('error-pinjaman');
-        executeJSONP(`${SCRIPT_URL}?action=getBookings`, cb_getBookings, function (msg) {
+
+        // User biasa hanya minta riwayat miliknya sendiri (difilter di
+        // server). Admin tetap dapat semua data untuk keperluan approval.
+        const isAdmin = currentUser && currentUser.role === "admin";
+        let url = `${SCRIPT_URL}?action=getBookings`;
+        if (!isAdmin && currentUser && currentUser.nim) {
+            url += `&onlyMine=1&nim=${encodeURIComponent(currentUser.nim)}`;
+        }
+
+        executeJSONP(url, cb_getBookings, function (msg) {
             document.getElementById("loading-pinjaman").classList.add("hidden");
-            showError('error-pinjaman', msg);
+            showErrorWithRetry('error-pinjaman', msg, loadDataPinjaman);
         });
     }
 
